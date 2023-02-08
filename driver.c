@@ -50,8 +50,8 @@ void create_tty_virt()
 {
     int pid;
     if (0 == (pid = fork())){
-        char ttyS0[] = "pty,raw,echo=0,link=/home/timafefi/Desktop/rks/ttyS0";
-        char ttyS1[] = "pty,raw,echo=0,link=/home/timafefi/Desktop/rks/ttyS1";
+        char ttyS0[] = "pty,raw,echo=0,link=./ttyS0";
+        char ttyS1[] = "pty,raw,echo=0,link=./ttyS1";
         execl("/bin/socat", "socat", "-d", "-d", ttyS0, ttyS1, NULL);
         perror("socat");
         exit(1);
@@ -127,6 +127,7 @@ void com_to_sock(int from, int to)
     if(-1 == (rc = read(from, msg, MSG_LEN)))
         report_error_and_exit("read");
     if(-1 == (sendto(to, msg, rc, 0, &udp_addr, udp_addr_len))){
+        //udp_addr is empty. Serial port has to write first
         perror("Error, perhaps socket is not connected yet");
     }
 }
@@ -160,6 +161,7 @@ struct termios raw_tty(int fd)
     //new.c_cc[VTIME] = 1;
     if(-1 == tcsetattr(fd, TCSANOW, &new))
         report_error_and_exit("tcsetattr");
+    //ERROR: Inappropriate ioctl for device
 
     return old;
 }
